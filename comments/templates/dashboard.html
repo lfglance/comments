@@ -1,0 +1,24 @@
+<table>
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Status</th>
+            <th>Date</th>
+            <th>Name</th>
+            <th>Message</th>
+            <th>URL</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for message in messages %}
+            <tr>
+                <td>{{ message.id }}</td>
+                <td>{{ 'Approved' if message.approved else 'Pending' }}</td>
+                <td>{{ message.datestamp }}</td>
+                <td>{{ message.name }}</td>
+                <td>{{ message.message }}</td>
+                <td>{{ message.url }}</td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>

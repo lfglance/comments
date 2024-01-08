@@ -1,0 +1,51 @@
+<script type="text/javascript">
+    const url = window.location.href.split('?')[0];
+    const ws = new WebSocket(`ws://${location.host}/api/v1/ws`);
+  
+    fetch(`http://${location.host}/api/v1/replay?url=${url}`)
+        .then((response) => response.json())
+        .then((data) => {
+            console.log(data)
+            for(i = 0; i < data.length; i++) {
+                console.log(data[i])
+                const li = document.createElement("li");
+                li.appendChild(document.createTextNode(data[i].message));
+                document.getElementById("messages").appendChild(li);
+            }
+        })
+  
+    ws.addEventListener('message', function (event) {
+        console.log(`received: ${event}`)
+        const li = document.createElement("li");
+        li.appendChild(document.createTextNode(event.data));
+        document.getElementById("messages").appendChild(li);
+    });
+  
+    function send(event) {
+        const form = new FormData(event.target);
+        const message = form.get("message");
+        const name = form.get("name");
+        const data = JSON.stringify({
+            "message": message,
+            "name": name,
+            "url": url
+        });
+        console.log(`sent: ${data}`);
+        if (message) {
+            ws.send(data);
+        }
+        event.target.reset();
+        return false;
+    }
+  
+</script>
+  
+<div style="display: flex; height: 100%; flex-direction: column">
+    <ul id="messages" style="flex-grow: 1; list-style-type: none"></ul>
+    <form onsubmit="return send(event)">
+        <input type="text" name="name" minlength="1" />
+        <input type="text" name="message" minlength="1" />
+        <button type="submit">Send</button>
+    </form>
+  </div>
+  
