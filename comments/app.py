@@ -1,8 +1,10 @@
 import asyncio
 import json
 from urllib.parse import urlparse
+from datetime import datetime, timedelta
 
-from quart import Quart, websocket, render_template, jsonify, request
+from quart import Quart, websocket, render_template, jsonify, request, redirect
+from peewee import fn
 
 from comments import config
 from comments.broker import Broker
@@ -16,17 +18,43 @@ broker = Broker()
 @app.get('/')
 async def dashboard():
     """
-    HTML table showing all messages in the database.
-    
-    Passing in a token argument can show comments pending moderation.
+    Dashboard with links for administration (soon).
     """
-    t = request.args.get('token')
-    is_admin = t == config.ADMIN_TOKEN
-    messages = Comment.select().where(
-        Comment.approved != is_admin
-    ).order_by(Comment.datestamp.desc())
+    comments_approved = Comment.select().where(Comment.approved == True).order_by(Comment.datestamp.desc())
+    comments_pending = Comment.select().where(Comment.approved == False).order_by(Comment.datestamp.desc())
+    urls = Comment.select().group_by(Comment.url)
+    names = Comment.select().group_by(Comment.name)
+    comments_by_date = {}
+    oldest_comment_date = Comment.select().order_by(Comment.datestamp.asc()).first().datestamp
+    today = datetime.today()
+    days = today - oldest_comment_date
+    date_list = list(reversed([(today - timedelta(days=x)).strftime('%Y-%m-%d') for x in range(days.days + 5)]))
+    print(date_list)
+    for comment in Comment.select():
+        s = comment.datestamp.strftime('%Y-%m-%d')
+        if s not in comments_by_date:
+            comments_by_date[s] = 0
+        comments_by_date[s] += 1
     return await render_template(
         "dashboard.html",
+        comments_approved=comments_approved,
+        comments_pending=comments_pending,
+        urls=urls,
+        comments_by_date=comments_by_date,
+        names=names
+    )
+
+
+@app.get('/example')
+async def example():
+    """
+    HTML table showing approved messages in the database.
+    """
+    messages = Comment.select().where(
+        Comment.approved == True
+    ).order_by(Comment.datestamp.desc())
+    return await render_template(
+        "example.html",
         messages=messages
     )
 
@@ -36,7 +64,10 @@ async def demo():
     """
     Demo page for posting messages.
     """
-    return await render_template('demo.html')
+    if request.args.get('token') == config.ADMIN_TOKEN:
+        return await render_template('demo.html')
+    else:
+        return redirect('/')
 
 
 @app.get('/api/v1/replay')

@@ -1,24 +1,127 @@
-<table>
-    <thead>
-        <tr>
-            <th>ID</th>
-            <th>Status</th>
-            <th>Date</th>
-            <th>Name</th>
-            <th>Message</th>
-            <th>URL</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for message in messages %}
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css" rel="stylesheet">
+</head>
+<body>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Roboto', sans-serif;
+      background: linear-gradient(to top right, rgb(124, 137, 213, .75), rgb(245, 153, 165, .75));
+      font-size: 12px;
+    }
+    nav {
+      padding: 2em;
+      background-color: #f6f6fc;
+      border-bottom: 1px solid #333;
+    }
+    .stat {
+      padding: 2em;
+      /* border: 1px solid #333; */
+      min-width: 200px;
+    }
+    #commentsTable {
+      max-height: 30vh;
+    }
+  </style>
+  <nav class="level">
+    <div class="level-item has-text-centered">
+      <div class="stat">
+        <p class="heading">Approved Comments</p>
+        <p class="title">{{ comments_approved.count() }}</p>
+      </div>
+    </div>
+    <div class="level-item has-text-centered">
+      <div class="stat">
+        <p class="heading">Pending Comments</p>
+        <p class="title">{{ comments_pending.count() }}</p>
+      </div>
+    </div>
+    <p class="level-item has-text-centered">
+      <i class="fa fa-4x fa-comments"></i>
+    </p>
+    <div class="level-item has-text-centered">
+      <div class="stat">
+        <p class="heading">Unique URLs</p>
+        <p class="title">{{ urls.count() }}</p>
+      </div>
+    </div>
+    <div class="level-item has-text-centered">
+      <div class="stat">
+        <p class="heading">Unique Names</p>
+        <p class="title">{{ names.count() }}</p>
+      </div>
+    </div>
+  </nav>
+  <div class="container">
+    <canvas id="chart"></canvas>
+    <div id="commentsTable">
+      <table class="table is-hoverable is-fullwidth">
+        <thead>
             <tr>
-                <td>{{ message.id }}</td>
-                <td>{{ 'Approved' if message.approved else 'Pending' }}</td>
-                <td>{{ message.datestamp }}</td>
-                <td>{{ message.name }}</td>
-                <td>{{ message.message }}</td>
-                <td>{{ message.url }}</td>
+                <th>ID</th>
+                <th>Status</th>
+                <th>Date</th>
+                <th>Name</th>
+                <th>Message</th>
+                <th>URL</th>
             </tr>
-        {% endfor %}
-    </tbody>
-</table>
+        </thead>
+        <tbody>
+            {% for comment in comments_approved %}
+                <tr>
+                    <td>{{ comment.id }}</td>
+                    <td>{{ 'Approved' if comment.approved else 'Pending' }}</td>
+                    <td>{{ comment.datestamp }}</td>
+                    <td>{{ comment.name }}</td>
+                    <td>{{ comment.message }}</td>
+                    <td>{{ comment.url }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+
+
+
+  
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    new Chart(document.getElementById('chart'), {
+      type: 'line',
+      data: {
+        labels: [
+          {%- for date in comments_by_date -%}
+          '{{- date -}}',
+          {%- endfor -%}
+        ],
+        datasets: [{
+          data: [
+          {%- for date in comments_by_date -%}
+          '{{- comments_by_date[date] -}}',
+          {%- endfor -%}
+        ],
+          borderWidth: 1
+        }]
+      },
+      options: {
+        scales: {
+          y: {
+            beginAtZero: true
+          }
+        }
+      }
+    });
+  </script>
+
+</body>
+</html>

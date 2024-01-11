@@ -1,0 +1,35 @@
+<p>
+    This is a demonstration of an extremely simple server-side rendering app. 
+    When you make a request to the web service, the backend will query it's database 
+    for data and render it into a templatized HTML page which is then served to the user. 
+    There is no client side javascript of any kind.
+</p>
+
+<p>
+    Navigate to <a href="/dashboard">dashboard to see a more complete view.</a>
+</p>
+
+<table>
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Status</th>
+            <th>Date</th>
+            <th>Name</th>
+            <th>Message</th>
+            <th>URL</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for message in messages %}
+            <tr>
+                <td>{{ message.id }}</td>
+                <td>{{ 'Approved' if message.approved else 'Pending' }}</td>
+                <td>{{ message.datestamp }}</td>
+                <td>{{ message.name }}</td>
+                <td>{{ message.message }}</td>
+                <td>{{ message.url }}</td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
