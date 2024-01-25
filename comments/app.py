@@ -24,24 +24,27 @@ async def dashboard():
     comments_pending = Comment.select().where(Comment.approved == False).order_by(Comment.datestamp.desc())
     urls = Comment.select().group_by(Comment.url)
     names = Comment.select().group_by(Comment.name)
-    comments_by_date = {}
+    comments_by_url = {}
     oldest_comment_date = Comment.select().order_by(Comment.datestamp.asc()).first().datestamp
     today = datetime.today()
     days = today - oldest_comment_date
     date_list = list(reversed([(today - timedelta(days=x)).strftime('%Y-%m-%d') for x in range(days.days + 5)]))
-    print(date_list)
     for comment in Comment.select():
-        s = comment.datestamp.strftime('%Y-%m-%d')
-        if s not in comments_by_date:
-            comments_by_date[s] = 0
-        comments_by_date[s] += 1
+        ds = comment.datestamp.strftime('%Y-%m-%d')
+        if comment.url not in comments_by_url:
+            comments_by_url[comment.url] = {}
+            for d in date_list:
+                comments_by_url[comment.url][d] = 0
+        if ds not in comments_by_url[comment.url]:
+            comments_by_url[comment.url][ds] = 0
+        comments_by_url[comment.url][ds] += 1
     return await render_template(
         "dashboard.html",
+        urls=urls,
+        names=names,
         comments_approved=comments_approved,
         comments_pending=comments_pending,
-        urls=urls,
-        comments_by_date=comments_by_date,
-        names=names
+        comments_by_url=comments_by_url
     )
 
 

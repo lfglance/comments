@@ -13,21 +13,20 @@
     }
     body {
       font-family: 'Roboto', sans-serif;
-      background: linear-gradient(to top right, rgb(124, 137, 213, .75), rgb(245, 153, 165, .75));
       font-size: 12px;
     }
     nav {
       padding: 2em;
-      background-color: #f6f6fc;
+      background-color: #333;
       border-bottom: 1px solid #333;
+      color: #f6f6f6;
+    }
+    nav .title {
+      color: #f6f6f6;
     }
     .stat {
       padding: 2em;
-      /* border: 1px solid #333; */
       min-width: 200px;
-    }
-    #commentsTable {
-      max-height: 30vh;
     }
   </style>
   <nav class="level">
@@ -60,7 +59,7 @@
     </div>
   </nav>
   <div class="container">
-    <canvas id="chart"></canvas>
+    <div id="chart"></div>
     <div id="commentsTable">
       <table class="table is-hoverable is-fullwidth">
         <thead>
@@ -89,38 +88,56 @@
     </div>
   </div>
 
-
-
-
-  
-
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.plot.ly/plotly-2.27.0.min.js" charset="utf-8"></script>
   <script>
-    new Chart(document.getElementById('chart'), {
-      type: 'line',
-      data: {
-        labels: [
-          {%- for date in comments_by_date -%}
-          '{{- date -}}',
-          {%- endfor -%}
-        ],
-        datasets: [{
-          data: [
-          {%- for date in comments_by_date -%}
-          '{{- comments_by_date[date] -}}',
-          {%- endfor -%}
-        ],
-          borderWidth: 1
-        }]
-      },
-      options: {
-        scales: {
-          y: {
-            beginAtZero: true
-          }
+
+    var data = [
+      {% for url in comments_by_url %}
+      {% autoescape false %}
+        {
+          x: {{ comments_by_url[url].keys() | list }},
+          y: {{ comments_by_url[url].values() | list }},
+          text: {{ comments_by_url.keys() | list }},
+          textposition: 'none',
+          type: 'bar',
+          name: '{{ url }}'
+        },
+      {% endautoescape %}
+      {% endfor %}
+    ];
+    // var layout = {barmode: 'stack'};
+    var layout = {
+      title: 'Comments Left By URL and Date',
+      xaxis: {
+        tickfont: {
+          size: 14,
+          color: 'rgb(107, 107, 107)'
+        }}
+      ,
+      yaxis: {
+        title: 'Comments',
+        titlefont: {
+          size: 12,
+          color: 'rgb(107, 107, 107)'
+        },
+        tickfont: {
+          size: 10,
+          color: 'rgb(107, 107, 107)'
         }
-      }
-    });
+      },
+      legend: {
+        x: .8,
+        y: 1,
+        bgcolor: 'rgba(255, 255, 255, 0)',
+        bordercolor: 'rgba(255, 255, 255, 0)'
+      },
+      barmode: 'stack',
+      bargap: 0.5,
+      bargroupgap: 0.1
+    };
+
+    Plotly.newPlot('chart', data, layout, {responsive: true});
+    
   </script>
 
 </body>
